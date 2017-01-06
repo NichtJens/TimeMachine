@@ -14,26 +14,26 @@ def redo(obj, *args, **kwargs):
 
 
 
-def altering(f):
-    def n(self, *args, **kwargs):
+def altering(func):
+    def wrapper(self, *args, **kwargs):
         self.redostack = []
-        self.undostack.append((f, args, kwargs))
-        f(self, *args, **kwargs)
-    return n
+        self.undostack.append((func, args, kwargs))
+        func(self, *args, **kwargs)
+    return wrapper
 
 
-def timemachine(c):
+def timemachine(cls):
 
     def __init__(self, *args, **kwargs):
-        c_init(self, *args, **kwargs)
+        cls_init(self, *args, **kwargs)
         assert not hasattr(self, "redostack")
         assert not hasattr(self, "undostack")
         self.redostack = []
         self.undostack = []
         self.original = deepcopy(self)
 
-    c_init = c.__init__
-    c.__init__ = __init__
+    cls_init = cls.__init__
+    cls.__init__ = __init__
 
 
     def reset(self):
@@ -53,8 +53,8 @@ def timemachine(c):
         self.__reset__()
         self.undostack = undostack
         self.redostack = redostack
-        for f, args, kwargs in undostack:
-            f(self, *args, **kwargs)
+        for func, args, kwargs in undostack:
+            func(self, *args, **kwargs)
 
 
     def redo(self):
@@ -64,20 +64,20 @@ def timemachine(c):
         cmd = self.redostack.pop()
         self.undostack.append(cmd)
 
-        f, args, kwargs = cmd
-        f(self, *args, **kwargs)
+        func, args, kwargs = cmd
+        func(self, *args, **kwargs)
 
 
 
-    assert not hasattr(c, "__reset__")
-    assert not hasattr(c, "__undo__")
-    assert not hasattr(c, "__redo__")
+    assert not hasattr(cls, "__reset__")
+    assert not hasattr(cls, "__undo__")
+    assert not hasattr(cls, "__redo__")
 
-    c.__reset__ = reset
-    c.__undo__ = undo
-    c.__redo__ = redo
+    cls.__reset__ = reset
+    cls.__undo__ = undo
+    cls.__redo__ = redo
 
-    return c
+    return cls
 
 
 
