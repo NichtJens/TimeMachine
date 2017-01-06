@@ -3,6 +3,17 @@
 from copy import deepcopy
 
 
+def reset(obj, *args, **kwargs):
+    return obj.__reset__(*args, **kwargs)
+
+def undo(obj, *args, **kwargs):
+    return obj.__undo__(*args, **kwargs)
+
+def redo(obj, *args, **kwargs):
+    return obj.__redo__(*args, **kwargs)
+
+
+
 def altering(f):
     def n(self, *args, **kwargs):
         self.redostack = []
@@ -37,7 +48,7 @@ def timemachine(c):
         cmd = undostack.pop()
         redostack.append(cmd)
 
-        self.reset()
+        self.__reset__()
         self.undostack = undostack
         self.redostack = redostack
         for f, args, kwargs in undostack:
@@ -56,13 +67,13 @@ def timemachine(c):
 
 
 
-    assert not hasattr(c, "reset")
-    assert not hasattr(c, "undo")
-    assert not hasattr(c, "redo")
+    assert not hasattr(c, "__reset__")
+    assert not hasattr(c, "__undo__")
+    assert not hasattr(c, "__redo__")
 
-    c.reset = reset
-    c.undo = undo
-    c.redo = redo
+    c.__reset__ = reset
+    c.__undo__ = undo
+    c.__redo__ = redo
 
     return c
 
@@ -95,9 +106,9 @@ ot = Counter()
 ex = Counter()
 print ex
 
-ex.undo()
+undo(ex)
 print ex
-ex.undo()
+undo(ex)
 print ex
 
 ex.up()
@@ -117,7 +128,7 @@ print ot.original
 
 print ex
 print "reset"
-ex.reset()
+reset(ex)
 print ex
 
 ex.up()
@@ -132,44 +143,46 @@ ex.up()
 print ex
 
 print "undo"
-ex.undo()
+undo(ex)
 print ex
-ex.undo()
+undo(ex)
 print ex
-ex.undo()
+undo(ex)
 print ex
 
+print ex.redostack
+print ot.redostack
+
 print "redo"
-ex.redo()
-print ex #, ex.redostack, ex.undostack
-ex.redo()
-print ex #, ex.redostack, ex.undostack
-ex.redo()
-print ex #, ex.redostack, ex.undostack
-ex.redo()
-print ex #, ex.redostack, ex.undostack
+redo(ex)
+print ex
+redo(ex)
+print ex
+redo(ex)
+print ex
+redo(ex)
+print ex
 
 print "undo"
-ex.undo()
+undo(ex)
 print ex
-ex.undo()
+undo(ex)
 print ex
-ex.undo()
+undo(ex)
 print ex
 
 print "redo"
-ex.redo()
-print ex #, ex.redostack, ex.undostack
-ex.redo()
-print ex #, ex.redostack, ex.undostack
-ex.redo()
-print ex #, ex.redostack, ex.undostack
-ex.redo()
-print ex #, ex.redostack, ex.undostack
-
+redo(ex)
+print ex
+redo(ex)
+print ex
+redo(ex)
+print ex
+redo(ex)
+print ex
 
 print "undo+new_cmd"
-ex.undo()
+undo(ex)
 print ex.redostack
 ex.down()
 print ex.redostack
