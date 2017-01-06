@@ -62,6 +62,7 @@ def timemachine(cls):
         cls_init(self, *args, **kwargs)
         assert not hasattr(self, "redostack")
         assert not hasattr(self, "undostack")
+        assert not hasattr(self, "original")
         self.redostack = []
         self.undostack = []
         self.original = deepcopy(self)
