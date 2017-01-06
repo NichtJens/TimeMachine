@@ -26,6 +26,8 @@ def timemachine(c):
 
     def __init__(self, *args, **kwargs):
         c_init(self, *args, **kwargs)
+        assert not hasattr(self, "redostack")
+        assert not hasattr(self, "undostack")
         self.redostack = []
         self.undostack = []
         self.original = deepcopy(self)
