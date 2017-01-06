@@ -22,6 +22,40 @@ def altering(func):
     return wrapper
 
 
+
+def tm_reset(self):
+    self.__dict__.update(self.original.__dict__)
+
+
+def tm_undo(self):
+    if not self.undostack:
+        return
+
+    undostack = self.undostack
+    redostack = self.redostack
+
+    cmd = undostack.pop()
+    redostack.append(cmd)
+
+    self.__reset__()
+    self.undostack = undostack
+    self.redostack = redostack
+    for func, args, kwargs in undostack:
+        func(self, *args, **kwargs)
+
+
+def tm_redo(self):
+    if not self.redostack:
+        return
+
+    cmd = self.redostack.pop()
+    self.undostack.append(cmd)
+
+    func, args, kwargs = cmd
+    func(self, *args, **kwargs)
+
+
+
 def timemachine(cls):
 
     def __init__(self, *args, **kwargs):
@@ -36,46 +70,13 @@ def timemachine(cls):
     cls.__init__ = __init__
 
 
-    def reset(self):
-        self.__dict__.update(self.original.__dict__)
-
-
-    def undo(self):
-        if not self.undostack:
-            return
-
-        undostack = self.undostack
-        redostack = self.redostack
-
-        cmd = undostack.pop()
-        redostack.append(cmd)
-
-        self.__reset__()
-        self.undostack = undostack
-        self.redostack = redostack
-        for func, args, kwargs in undostack:
-            func(self, *args, **kwargs)
-
-
-    def redo(self):
-        if not self.redostack:
-            return
-
-        cmd = self.redostack.pop()
-        self.undostack.append(cmd)
-
-        func, args, kwargs = cmd
-        func(self, *args, **kwargs)
-
-
-
     assert not hasattr(cls, "__reset__")
     assert not hasattr(cls, "__undo__")
     assert not hasattr(cls, "__redo__")
 
-    cls.__reset__ = reset
-    cls.__undo__ = undo
-    cls.__redo__ = redo
+    cls.__reset__ = tm_reset
+    cls.__undo__ = tm_undo
+    cls.__redo__ = tm_redo
 
     return cls
 
