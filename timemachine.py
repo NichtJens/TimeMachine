@@ -14,7 +14,6 @@ def redo(obj, *args, **kwargs):
     return obj.__redo__(*args, **kwargs)
 
 
-
 def altering(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
@@ -23,6 +22,31 @@ def altering(func):
         func(self, *args, **kwargs)
     return wrapper
 
+def timemachine(cls):
+    cls.__original_init__ = cls.__init__
+    cls.__init__ = tm_init
+    return cls
+
+
+
+def tm_init(self, *args, **kwargs):
+    cls = type(self)
+    cls.__original_init__(self, *args, **kwargs)
+
+    assert not hasattr(self, "redostack")
+    assert not hasattr(self, "undostack")
+    assert not hasattr(self, "original")
+    self.redostack = []
+    self.undostack = []
+    self.original  = deepcopy(self)
+
+    assert not hasattr(self, "__reset__")
+    assert not hasattr(self, "__undo__")
+    assert not hasattr(self, "__redo__")
+    #binds the functions as bound methods
+    self.__reset__ = tm_reset.__get__(self, cls)
+    self.__undo__  = tm_undo.__get__(self, cls)
+    self.__redo__  = tm_redo.__get__(self, cls)
 
 
 def tm_reset(self):
@@ -55,37 +79,6 @@ def tm_redo(self):
 
     func, args, kwargs = cmd
     func(self, *args, **kwargs)
-
-
-
-
-def tm_init(self, *args, **kwargs):
-    cls = type(self)
-    cls.__original_init__(self, *args, **kwargs)
-
-    assert not hasattr(self, "redostack")
-    assert not hasattr(self, "undostack")
-    assert not hasattr(self, "original")
-    self.redostack = []
-    self.undostack = []
-    self.original  = deepcopy(self)
-
-    assert not hasattr(self, "__reset__")
-    assert not hasattr(self, "__undo__")
-    assert not hasattr(self, "__redo__")
-    #binds the functions as bound methods
-    self.__reset__ = tm_reset.__get__(self, cls)
-    self.__undo__  = tm_undo.__get__(self, cls)
-    self.__redo__  = tm_redo.__get__(self, cls)
-
-
-
-def timemachine(cls):
-
-    cls.__original_init__ = cls.__init__
-    cls.__init__ = tm_init
-
-    return cls
 
 
 
