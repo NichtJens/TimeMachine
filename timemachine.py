@@ -24,12 +24,14 @@ def altering(func):
 
 def timemachine(cls):
     cls.__original_init__ = cls.__init__
-    cls.__init__ = tm_init
+    cls.__init__ = _tm_init
     return cls
 
 
 
-def tm_init(self, *args, **kwargs):
+### INTERNALS ###
+
+def _tm_init(self, *args, **kwargs):
     cls = type(self)
     cls.__original_init__(self, *args, **kwargs)
 
@@ -44,16 +46,16 @@ def tm_init(self, *args, **kwargs):
     assert not hasattr(self, "__undo__")
     assert not hasattr(self, "__redo__")
     #binds the functions as bound methods
-    self.__reset__ = tm_reset.__get__(self, cls)
-    self.__undo__  = tm_undo.__get__(self, cls)
-    self.__redo__  = tm_redo.__get__(self, cls)
+    self.__reset__ = _tm_reset.__get__(self, cls)
+    self.__undo__  = _tm_undo.__get__(self, cls)
+    self.__redo__  = _tm_redo.__get__(self, cls)
 
 
-def tm_reset(self):
+def _tm_reset(self):
     self.__dict__.update(self._tm_initial_state.__dict__)
 
 
-def tm_undo(self):
+def _tm_undo(self):
     if not self._tm_undostack:
         return
 
@@ -70,7 +72,7 @@ def tm_undo(self):
         func(self, *args, **kwargs)
 
 
-def tm_redo(self):
+def _tm_redo(self):
     if not self._tm_redostack:
         return
 
