@@ -60,24 +60,23 @@ def timemachine(cls):
 
     def __init__(self, *args, **kwargs):
         cls_init(self, *args, **kwargs)
+
         assert not hasattr(self, "redostack")
         assert not hasattr(self, "undostack")
         assert not hasattr(self, "original")
         self.redostack = []
         self.undostack = []
-        self.original = deepcopy(self)
+        self.original  = deepcopy(self)
+
+        assert not hasattr(self, "__reset__")
+        assert not hasattr(self, "__undo__")
+        assert not hasattr(self, "__redo__")
+        self.__reset__ = tm_reset.__get__(self, cls)
+        self.__undo__  = tm_undo.__get__(self, cls)
+        self.__redo__  = tm_redo.__get__(self, cls)
 
     cls_init = cls.__init__
     cls.__init__ = __init__
-
-
-    assert not hasattr(cls, "__reset__")
-    assert not hasattr(cls, "__undo__")
-    assert not hasattr(cls, "__redo__")
-
-    cls.__reset__ = tm_reset
-    cls.__undo__ = tm_undo
-    cls.__redo__ = tm_redo
 
     return cls
 
