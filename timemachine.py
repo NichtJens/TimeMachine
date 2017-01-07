@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from functools import wraps
 from copy import deepcopy
 
 
@@ -15,6 +16,7 @@ def redo(obj, *args, **kwargs):
 
 
 def altering(func):
+    @wraps(func)
     def wrapper(self, *args, **kwargs):
         self.redostack = []
         self.undostack.append((func, args, kwargs))
