@@ -3,6 +3,9 @@ from functools import wraps
 from copy import deepcopy
 
 
+__all__ = "reset undo redo altering timemachine".split()
+
+
 def reset(obj, *args, **kwargs):
     return obj.__tm_reset__(*args, **kwargs)
 
