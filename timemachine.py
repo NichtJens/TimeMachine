@@ -5,13 +5,13 @@ from copy import deepcopy
 
 
 def reset(obj, *args, **kwargs):
-    return obj.__reset__(*args, **kwargs)
+    return obj.__tm_reset__(*args, **kwargs)
 
 def undo(obj, *args, **kwargs):
-    return obj.__undo__(*args, **kwargs)
+    return obj.__tm_undo__(*args, **kwargs)
 
 def redo(obj, *args, **kwargs):
-    return obj.__redo__(*args, **kwargs)
+    return obj.__tm_redo__(*args, **kwargs)
 
 
 def altering(func):
@@ -42,13 +42,13 @@ def _tm_init(self, *args, **kwargs):
     self._tm_undostack = []
     self._tm_initial_state  = deepcopy(self)
 
-    assert not hasattr(self, "__reset__")
-    assert not hasattr(self, "__undo__")
-    assert not hasattr(self, "__redo__")
+    assert not hasattr(self, "__tm_reset__")
+    assert not hasattr(self, "__tm_undo__")
+    assert not hasattr(self, "__tm_redo__")
     #binds the functions as bound methods
-    self.__reset__ = _tm_reset.__get__(self, cls)
-    self.__undo__  = _tm_undo.__get__(self, cls)
-    self.__redo__  = _tm_redo.__get__(self, cls)
+    self.__tm_reset__ = _tm_reset.__get__(self, cls)
+    self.__tm_undo__  = _tm_undo.__get__(self, cls)
+    self.__tm_redo__  = _tm_redo.__get__(self, cls)
 
 
 def _tm_reset(self):
@@ -65,7 +65,7 @@ def _tm_undo(self):
     cmd = undostack.pop()
     redostack.append(cmd)
 
-    self.__reset__()
+    reset(self)
     self._tm_undostack = undostack
     self._tm_redostack = redostack
     for func, args, kwargs in undostack:
