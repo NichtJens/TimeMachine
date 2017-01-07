@@ -71,6 +71,7 @@ def timemachine(cls):
         assert not hasattr(self, "__reset__")
         assert not hasattr(self, "__undo__")
         assert not hasattr(self, "__redo__")
+        #binds the functions as bound methods
         self.__reset__ = tm_reset.__get__(self, cls)
         self.__undo__  = tm_undo.__get__(self, cls)
         self.__redo__  = tm_redo.__get__(self, cls)
